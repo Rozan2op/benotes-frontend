@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BE Notes - Admin Panel</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f172a; color: #f8fafc; padding: 40px; }
+        .container { max-width: 900px; margin: 0 auto; }
+        h1 { border-bottom: 2px solid #334155; padding-bottom: 10px; color: #38bdf8; }
+        .note-card { background: #1e293b; border: 1px solid #334155; padding: 20px; border-radius: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .info span { display: block; font-size: 0.9rem; color: #94a3b8; }
+        .info strong { font-size: 1.1rem; color: #f1f5f9; }
+        .actions { display: flex; gap: 10px; }
+        .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-view { background: #334155; color: white; text-decoration: none; font-size: 0.9rem; padding: 10px 15px; border-radius: 6px; }
+        .btn-approve { background: #10b981; color: white; }
+        .btn-approve:hover { background: #059669; }
+        .btn-delete { background: #ef4444; color: white; }
+        .btn-delete:hover { background: #dc2626; }
+        #status-msg { color: #38bdf8; font-weight: bold; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Admin Approval Dashboard</h1>
+        <div id="status-msg"></div>
+        <div id="pending-list">Checking permissions...</div>
+    </div>
+
+    <script>
+        const API_URL = "https://benotes.rozanshah.com.np";
+        const ADMIN_PASSWORD = "Channel2myvlog"; // Change this!
+
+        function checkAuth() {
+            const pass = prompt("Enter Admin Password:");
+            if (pass !== ADMIN_PASSWORD) {
+                alert("Incorrect password. Access denied.");
+                document.body.innerHTML = "<h1 style='color:white; text-align:center; margin-top:50px;'>401 - Unauthorized</h1>";
+                return false;
+            }
+            return true;
+        }
+
+        async function fetchPending() {
+            const list = document.getElementById('pending-list');
+            try {
+                const res = await fetch(`${API_URL}/api/admin/pending`);
+                const notes = await res.json();
+                
+                if (notes.length === 0) {
+                    list.innerHTML = "<p>No pending notes to review. Good job!</p>";
+                    return;
+                }
+
+                list.innerHTML = notes.map(note => `
+                    <div class="note-card">
+                        <div class="info">
+                            <strong>${note.subject}</strong>
+                            <span>Faculty: ${note.faculty} | Sem: ${note.semester}</span>
+                            <span>Type: ${note.type} | By: ${note.uploader}</span>
+                        </div>
+                        <div class="actions">
+                            <a href="${note.link}" target="_blank" class="btn-view">View PDF</a>
+                            <button class="btn btn-approve" onclick="handleAction('${note._id}', 'approve')">Approve</button>
+                            <button class="btn btn-delete" onclick="handleAction('${note._id}', 'delete')">Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                list.innerHTML = "Error connecting to backend.";
+            }
+        }
+
+        async function handleAction(id, action) {
+            const msg = document.getElementById('status-msg');
+            msg.innerText = "Processing...";
+            
+            try {
+                const res = await fetch(`${API_URL}/api/admin/action`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, action })
+                });
+                
+                if (res.ok) {
+                    msg.innerText = action === 'approve' ? "✅ Note Approved!" : "🗑️ Note Deleted!";
+                    fetchPending();
+                }
+            } catch (err) {
+                msg.innerText = "❌ Action failed.";
+            }
+        }
+
+        // Run on load
+        if (checkAuth()) {
+            fetchPending();
+        }
+    </script>
+</body>
+</html>
