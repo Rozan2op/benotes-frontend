@@ -79,13 +79,13 @@ const engineeringData = {
             3: ["Engineering Mathematics III", "Electric Circuit Theory", "Electrical Engineering Material", "Electronic Devices", "Digital Logic", "Electromagnetics"],
             4: ["Applied Mathematics", "Numerical Method", "Electrical Machine I", "Power System Analysis I", "Instrumentation I", "Microprocessor"],
             5: ["Communication English", "Probability and Statistics", "Electrical Machine II", "Power System Analysis II", "Instrumentation II", "Control System"],
-            6: ["Engineering Economics", "Hydro Power", "Switchgear and Protection", "Power Electronics", "Signal Analysis"],
-            7: ["Project Management", "Organization and Management", "Power Plant Design", "Project (Part A)", 
-                { type: "elective", name: "Elective I", subjects: ["Rural Electrification", "High Voltage Engineering", "Reliability Engineering"] }
+            6: ["Engineering Economics", "Hydro Power", "Switchgear and Protection", "Digital Control System", "Signal Analysis", "Industrial Power Distribution and Illumination"],
+            7: ["Project Engineering", "Organization and Management", "Technology,Environment and Society", "Power Electronics", "Utilization of Electrical Energy", "Power Plant Equipment", "Project I", 
+                { type: "elective", name: "Elective I", subjects: ["Rural Electrification", "Energy Electrical System Management", "Reliability Engineering"] }
             ],
-            8: ["Professional Practice", "High Voltage Engineering", "Utilization of Electrical Energy", "Project (Part B)",
+            8: ["Professional Practice", "High Voltage Engineering", "High Voltage Engineering", "Power Plant Design", "Transmission and Distribution Design", "Project II",
                 { type: "elective", name: "Elective II", subjects: ["Advanced Power System Analysis", "Bio-Medical Instrumentation", "Applied Photovoltaic"] },
-                { type: "elective", name: "Elective III", subjects: ["Power System Reliability", "Neural Networks", "Smart Grid"] }
+                { type: "elective", name: "Elective III", subjects: ["Wind Energy Conversion System", "Artificial Neural Network", "Micro-Hydropower"] }
             ]
         }
     },
