@@ -7,30 +7,37 @@
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f172a; color: #f8fafc; padding: 40px; }
         .container { max-width: 900px; margin: 0 auto; }
-        h1 { border-bottom: 2px solid #334155; padding-bottom: 10px; color: #38bdf8; }
+        h1 { border-bottom: 2px solid #334155; padding-bottom: 10px; color: #38bdf8; display: flex; justify-content: space-between; }
         .note-card { background: #1e293b; border: 1px solid #334155; padding: 20px; border-radius: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
         .info span { display: block; font-size: 0.9rem; color: #94a3b8; }
         .info strong { font-size: 1.1rem; color: #f1f5f9; }
-        .actions { display: flex; gap: 10px; }
+        .actions { display: flex; gap: 10px; align-items: center; }
         .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; }
         .btn-view { background: #334155; color: white; text-decoration: none; font-size: 0.9rem; padding: 10px 15px; border-radius: 6px; }
         .btn-approve { background: #10b981; color: white; }
         .btn-approve:hover { background: #059669; }
         .btn-delete { background: #ef4444; color: white; }
         .btn-delete:hover { background: #dc2626; }
+        
+        /* New Status Badges */
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; margin-left: 10px; text-transform: uppercase; }
+        .badge-pending { background: #fef3c7; color: #d97706; } /* Yellow */
+        .badge-failed { background: #fee2e2; color: #dc2626; }   /* Red */
+        .badge-uploading { background: #e0f2fe; color: #0284c7; } /* Blue */
+        
         #status-msg { color: #38bdf8; font-weight: bold; margin-bottom: 15px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Admin Approval Dashboard</h1>
+        <h1>Admin Dashboard <button onclick="fetchPending()" class="btn btn-view" style="font-size:0.8rem">Refresh</button></h1>
         <div id="status-msg"></div>
         <div id="pending-list">Checking permissions...</div>
     </div>
 
     <script>
         const API_URL = "https://benotes-backend.onrender.com";
-        const ADMIN_PASSWORD = "Channel2myvlog"; // Change this!
+        const ADMIN_PASSWORD = "Channel2myvlog"; 
 
         function checkAuth() {
             const pass = prompt("Enter Admin Password:");
@@ -44,6 +51,7 @@
 
         async function fetchPending() {
             const list = document.getElementById('pending-list');
+            list.innerHTML = "<p>Loading...</p>";
             try {
                 const res = await fetch(`${API_URL}/api/admin/pending`);
                 const notes = await res.json();
@@ -53,26 +61,44 @@
                     return;
                 }
 
-                list.innerHTML = notes.map(note => `
+                list.innerHTML = notes.map(note => {
+                    // Determine Status Badge
+                    let badgeClass = 'badge-pending';
+                    if (note.status === 'failed') badgeClass = 'badge-failed';
+                    if (note.status === 'uploading') badgeClass = 'badge-uploading';
+
+                    // Only show 'View PDF' if link exists
+                    const viewBtn = note.link 
+                        ? `<a href="${note.link}" target="_blank" class="btn-view">View PDF</a>` 
+                        : `<span style="color:#ef4444; font-size:0.9rem; padding:10px;">No Link (Failed)</span>`;
+
+                    return `
                     <div class="note-card">
                         <div class="info">
-                            <strong>${note.subject}</strong>
+                            <strong>${note.subject} <span class="badge ${badgeClass}">${note.status || 'PENDING'}</span></strong>
                             <span>Faculty: ${note.faculty} | Sem: ${note.semester}</span>
-                            <span>Type: ${note.type} | By: ${note.uploader}</span>
+                            <span>Type: ${note.type} | By: ${note.uploader || 'Anonymous'}</span>
+                            ${note.status === 'failed' ? '<span style="color:#ef4444">⚠️ This upload failed. Delete it.</span>' : ''}
                         </div>
                         <div class="actions">
-                            <a href="${note.link}" target="_blank" class="btn-view">View PDF</a>
-                            <button class="btn btn-approve" onclick="handleAction('${note._id}', 'approve')">Approve</button>
+                            ${viewBtn}
+                            ${note.status !== 'failed' ? 
+                                `<button class="btn btn-approve" onclick="handleAction('${note._id}', 'approve')">Approve</button>` 
+                                : ''
+                            }
                             <button class="btn btn-delete" onclick="handleAction('${note._id}', 'delete')">Delete</button>
                         </div>
                     </div>
-                `).join('');
+                `}).join('');
             } catch (err) {
                 list.innerHTML = "Error connecting to backend.";
+                console.error(err);
             }
         }
 
         async function handleAction(id, action) {
+            if(!confirm(`Are you sure you want to ${action} this note?`)) return;
+
             const msg = document.getElementById('status-msg');
             msg.innerText = "Processing...";
             
@@ -86,6 +112,8 @@
                 if (res.ok) {
                     msg.innerText = action === 'approve' ? "✅ Note Approved!" : "🗑️ Note Deleted!";
                     fetchPending();
+                } else {
+                    msg.innerText = "❌ Server error.";
                 }
             } catch (err) {
                 msg.innerText = "❌ Action failed.";

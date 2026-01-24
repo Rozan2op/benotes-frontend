@@ -139,7 +139,7 @@ function createElectiveDropdown(electiveObj) {
     subjectList.appendChild(container);
 }
 
-// --- 5. API FETCHING ---
+// --- 5. DATA MERGING & FETCHING ---
 async function fetchNotes(subjectName, containerId) {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -147,21 +147,45 @@ async function fetchNotes(subjectName, containerId) {
     container.innerHTML = '<div style="padding:20px; color:#94a3b8; text-align:center;"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
     
     try {
-        // FIXED URL PATH (/api/notes)
+        // 1. Fetch from Database (Drive files)
         const url = `${API_URL}/api/notes?faculty=${currentFaculty}&semester=${currentSemester}&subject=${encodeURIComponent(subjectName)}`;
         const response = await fetch(url);
-        const notes = await response.json();
+        const dbNotes = await response.json();
         
+    
+
+// REPLACE the "Fetch from Manual List" section with this:
+
+    // 2. Fetch from Manual List (SHARED MODE)
+    let manualNotes = [];
+    
+    // We simply look for the Subject Name in our generated list
+    // It doesn't matter if the user is in Civil or Computer -> If the subject name matches, we show the files.
+    if (window.manualResources && window.manualResources[subjectName]) {
+        manualNotes = window.manualResources[subjectName].map(item => ({
+            type: item.type,
+            originalName: item.name,
+            link: item.link,
+            isManual: true
+        }));
+    }
+
+
+
+        // 3. Merge Results
+        const allNotes = [...manualNotes, ...dbNotes];
+
         container.innerHTML = ''; 
         container.setAttribute('data-loaded', 'true');
 
-        if(!notes || notes.length === 0) {
+        if(allNotes.length === 0) {
             container.innerHTML = '<div style="padding:20px; color:#94a3b8; text-align:center;">No resources uploaded yet.</div>';
             return;
         }
 
         const groups = { 'Syllabus': [], 'Text Book': [], 'Notes': [], 'Manual': [], 'Lab Report': [], 'Assignment': [], 'Question': [] };
-        notes.forEach(note => {
+        
+        allNotes.forEach(note => {
             if(groups[note.type]) groups[note.type].push(note);
             else groups['Notes'].push(note);
         });
@@ -178,7 +202,8 @@ async function fetchNotes(subjectName, containerId) {
                     const link = document.createElement('a');
                     link.href = note.link;
                     link.target = "_blank";
-                    link.className = "resource-link";
+                    // Add a special class if it's a manual file (optional styling)
+                    link.className = note.isManual ? "resource-link manual-link" : "resource-link";
                     link.innerHTML = `${getIcon(note.type)} ${note.originalName || "View PDF"}`;
                     listDiv.appendChild(link);
                 });
@@ -197,7 +222,8 @@ function getIcon(type) {
     return `<i class="fas ${icons[type] || 'fa-link'}"></i>`;
 }
 
-// --- 6. MODAL LOGIC ---
+// --- 6. MODAL & FORM LOGIC ---
+// ... (Keep your existing Modal functions openGlobalModal, modalFacultyChanged etc.) ...
 function openGlobalModal() {
     modal.style.display = 'block';
     const facultySelect = document.getElementById('modalFaculty');
@@ -267,12 +293,12 @@ window.onclick = (event) => {
     if (event.target == successModal) closeSuccessModal();
 };
 
-// --- 7. FORM SUBMIT ---
 document.getElementById('uploadForm').onsubmit = async function(e) {
     e.preventDefault();
     const submitBtn = e.target.querySelector('.btn-submit');
-    const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+    
+    // UI Feedback
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
     submitBtn.disabled = true;
 
     const formData = new FormData();
@@ -287,18 +313,20 @@ document.getElementById('uploadForm').onsubmit = async function(e) {
 
     try {
         const response = await fetch(`${API_URL}/upload`, { method: 'POST', body: formData });
+        
         if(response.ok) {
             closeModal();
             successModal.style.display = 'block';
             e.target.reset();
             document.getElementById('fileNameDisplay').innerText = "";
+            // NOTE: We don't wait for drive upload. Server says OK immediately.
         } else {
             alert("❌ Server Error. Please try again.");
         }
     } catch (error) {
         alert("❌ Could not connect to server.");
     } finally {
-        submitBtn.innerHTML = originalText;
+        submitBtn.innerHTML = 'Submit';
         submitBtn.disabled = false;
     }
 };
