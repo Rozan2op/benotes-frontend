@@ -7,15 +7,16 @@
     <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/29/29302.png">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
 
-    <header>
+    <header id="main-header">
         <div class="header-content">
             <div class="logo">
-                <i class="fas fa-book-reader" style="color:var(--primary)"></i> 
-                ERC Notes <span class="badge">ercnotes.rozanshah.com.np</span>
+                <i class="fas fa-book-reader"></i> 
+                <span class="logo-text">ERC Notes</span>
+                <span class="badge">ercnotes.rozanshah.com.np</span>
             </div>
             
             <button class="btn-contribute" onclick="openGlobalModal()">
@@ -23,6 +24,32 @@
             </button>
         </div>
     </header>
+
+    <!-- Hero Section with College Image -->
+    <section id="hero-section" class="hero-section">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h1 class="hero-title">Engineering Resource Center</h1>
+            <p class="hero-subtitle">Your comprehensive hub for IOE notes, past questions, and study materials</p>
+            <div class="hero-stats">
+                <div class="stat-item">
+                    <i class="fas fa-book"></i>
+                    <span>1000+ Resources</span>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-users"></i>
+                    <span>Student Curated</span>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>All Faculties</span>
+                </div>
+            </div>
+        </div>
+        <div class="scroll-indicator">
+            <i class="fas fa-chevron-down"></i>
+        </div>
+    </section>
 
     <main class="container">
         
@@ -145,7 +172,7 @@
                 <span class="close-btn" onclick="closeContributorsModal()">&times;</span>
             </div>
             <div id="contributorsList" style="padding: 20px; max-height: 400px; overflow-y: auto;">
-                </div>
+            </div>
         </div>
     </div>
 

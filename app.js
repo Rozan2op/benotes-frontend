@@ -14,8 +14,37 @@ const modal = document.getElementById('uploadModal');
 const successModal = document.getElementById('successModal');
 const contributorsModal = document.getElementById('contributorsModal'); 
 
+// Hero Section Elements (NEW)
+const heroSection = document.getElementById('hero-section');
+const header = document.getElementById('main-header');
+
 let currentFaculty = '';
 let currentSemester = '';
+
+// --- 2.5. HERO SECTION MANAGEMENT (NEW) ---
+document.addEventListener('DOMContentLoaded', function() {
+    // Scroll indicator functionality
+    const scrollIndicator = document.querySelector('.scroll-indicator');
+    if (scrollIndicator) {
+        scrollIndicator.addEventListener('click', function() {
+            facultySection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    }
+    
+    // Header scroll effect
+    let lastScroll = 0;
+    window.addEventListener('scroll', function() {
+        const currentScroll = window.pageYOffset;
+        
+        if (currentScroll > 100) {
+            header.classList.add('scrolled');
+        } else {
+            header.classList.remove('scrolled');
+        }
+        
+        lastScroll = currentScroll;
+    });
+});
 
 // --- 3. NAVIGATION ---
 function renderFaculties() {
@@ -31,6 +60,14 @@ function renderFaculties() {
 
 function loadFaculty(key) {
     currentFaculty = key;
+    
+    // Hide hero section when faculty is selected (NEW)
+    if (heroSection) {
+        heroSection.classList.add('hidden');
+    }
+    document.body.classList.add('faculty-selected');
+    
+    // Original logic continues
     facultySection.classList.add('hidden');
     semesterSection.classList.remove('hidden');
     selectedFacultyTitle.innerText = engineeringData[key].name;
@@ -48,6 +85,13 @@ function loadFaculty(key) {
 }
 
 function resetView() {
+    // Show hero section when going back (NEW)
+    if (heroSection) {
+        heroSection.classList.remove('hidden');
+    }
+    document.body.classList.remove('faculty-selected');
+    
+    // Original logic continues
     facultySection.classList.remove('hidden');
     semesterSection.classList.add('hidden');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -299,7 +343,7 @@ function updateFileName() {
     if(input.files.length > 0) {
         display.innerText = input.files[0].name;
         label.innerText = "File Selected:";
-        label.style.color = "#6366f1";
+        label.style.color = "#007AFF"; // Updated to match new primary color
     }
 }
 
@@ -340,6 +384,8 @@ document.getElementById('uploadForm').onsubmit = async function(e) {
             successModal.style.display = 'block';
             e.target.reset();
             document.getElementById('fileNameDisplay').innerText = "";
+            document.getElementById('fileLabelText').innerText = "Click or Drag PDF here";
+            document.getElementById('fileLabelText').style.color = "";
         } else {
             alert("❌ Server Error. Please try again.");
         }
@@ -351,7 +397,7 @@ document.getElementById('uploadForm').onsubmit = async function(e) {
     }
 };
 
-// --- 7. NEW: CONTRIBUTORS FEATURE (CONNECTED TO BACKEND) ---
+// --- 7. CONTRIBUTORS FEATURE (CONNECTED TO BACKEND) ---
 function openContributorsModal() {
     contributorsModal.style.display = 'block';
     renderContributors();
